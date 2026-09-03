@@ -8,16 +8,9 @@
 - OpenSTA 3.1
 - 工艺库 Liberty 文件（默认 nangate45）
 
-环境变量通过 `settings_OpenSTA.sh` 配置：
-
-```bash
-source ~/settings_OpenSTA.sh
-```
-
 ## 快速开始
 
 ```bash
-source ~/settings_OpenSTA.sh
 python3 run_flow.py              # 按 flow.env 配置跑全流程
 python3 run_flow.py --clean      # 清空输出目录后重跑
 python3 run_flow.py -c 其他.env  # 使用其他配置文件
