@@ -1,0 +1,6 @@
+/verilogs
+*.log
+*.tcl
+*.ys
+yosys/synthesized_netlist.v
+constraints.sdc
