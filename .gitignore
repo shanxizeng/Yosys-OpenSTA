@@ -4,3 +4,5 @@
 *.ys
 yosys/synthesized_netlist.v
 /output
+stats.json
+stats.txt

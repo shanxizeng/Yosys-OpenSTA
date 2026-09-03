@@ -123,6 +123,8 @@ def main():
         f'dfflibmap -liberty {cfg["LIBERTY"]}',
         f'abc -liberty {cfg["LIBERTY"]}',
         f'write_verilog -noattr {netlist}',
+        'tee -o stats.json stat -json',
+        'tee -o stats.txt stat'
     ]
     ys_path = out_dir / 'run.ys'
     ys_path.write_text('\n'.join(ys_lines) + '\n')
