@@ -116,6 +116,8 @@ def main():
     for f in src_files:
         ys_lines.append(f'read_verilog -sv {f}' if f.suffix == '.sv' else f'read_verilog {f}')
     netlist = out_dir / 'synthesized_netlist.v'
+    stats_json = out_dir / 'stats.json'
+    stats_txt = out_dir / 'stats.txt'
     ys_lines += [
         f'hierarchy -check -top {wrapper_module}',
         'proc; opt; fsm; opt; memory; opt',
@@ -123,8 +125,8 @@ def main():
         f'dfflibmap -liberty {cfg["LIBERTY"]}',
         f'abc -liberty {cfg["LIBERTY"]}',
         f'write_verilog -noattr {netlist}',
-        'tee -o stats.json stat -json',
-        'tee -o stats.txt stat'
+        f'tee -o {stats_json} stat -json',
+        f'tee -o {stats_txt} stat'
     ]
     ys_path = out_dir / 'run.ys'
     ys_path.write_text('\n'.join(ys_lines) + '\n')

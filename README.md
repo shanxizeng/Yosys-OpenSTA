@@ -75,6 +75,8 @@ flow.env ──► run_flow.py
 | `constraints.sdc` | 替换时钟周期后的约束 |
 | `sta.tcl` | OpenSTA 分析脚本 |
 | `sta_timing_report.log` | 时序报告（最差路径 + summary） |
+| `stats.txt` | yosys综合使用资源报告 |
+| `stats.json` | yosys综合使用资源报告（json格式） |
 
 ## 注意事项
 
