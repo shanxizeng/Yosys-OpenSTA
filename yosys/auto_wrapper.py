@@ -128,8 +128,8 @@ endmodule
     return wrapper
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python auto_wrapper.py <source.v>")
+    if len(sys.argv) not in (2, 3):
+        print("Usage: python auto_wrapper.py <source.v> [out_dir]")
         sys.exit(1)
     print("auto_wrapper.py", sys.argv[1])
     src_file = sys.argv[1]
@@ -141,7 +141,12 @@ def main():
     module_name = src_path.stem
     print(f"Found {len(inputs)} input ports, {len(outputs)} output ports")
     wrapper_code = generate_wrapper(inputs, outputs, hasclock, hasreset, module_name)
-    out_file = src_path.parent / f"{module_name}_wrapper.sv"
+    if len(sys.argv) == 3:
+        out_dir = Path(sys.argv[2])
+        out_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir = src_path.parent
+    out_file = out_dir / f"{module_name}_wrapper.sv"
     with open(out_file, 'w') as f:
         f.write(wrapper_code)
     print(f"Wrapper generated: {out_file}")
