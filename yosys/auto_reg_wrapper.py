@@ -28,19 +28,25 @@ def parse_ports(file_path, module_name):
     outputs = []
     hasclock = False
     hasreset = False
+    hasclk = False
+    hasrst = False
     for m in re.finditer(pattern, full_decl):
         dir_, range_, name = m.groups()
-        if name in ('clock', 'reset'):
+        if name in ('clock', 'reset', 'clk', 'rst'):
             if name == 'clock':
                 hasclock = True
+            if name == 'clk':
+                hasclk = True
             if name == 'reset':
                 hasreset = True
+            if name == 'rst':
+                hasrst = True
             continue
         if dir_ == 'input':
             inputs.append((name, range_))
         else:
             outputs.append((name, range_))
-    return inputs, outputs, hasclock, hasreset
+    return inputs, outputs, hasclock, hasclk, hasreset, hasrst
 
 def width_from_range(range_str):
     if not range_str:
@@ -48,7 +54,7 @@ def width_from_range(range_str):
     msb, lsb = map(int, range_str.split(':'))
     return abs(msb - lsb) + 1
 
-def generate_wrapper(inputs, outputs, hasclock, hasreset, module_name):
+def generate_wrapper(inputs, outputs, hasclock, hasclk, hasreset, hasrst, module_name):
     num_inputs = len(inputs)
     num_outputs = len(outputs)
     # 地址宽度要能覆盖输入和输出寄存器
@@ -139,9 +145,17 @@ module {module_name}_wrapper #(
         wrapper += f"""
 		.clock (clk),
 """
+    if hasclk:
+        wrapper += f"""
+		.clk (clk),
+"""     
     if hasreset:
         wrapper += f"""
 		.reset (~rst_n),
+"""
+    if hasrst:
+        wrapper += f"""
+		.rst (~rst_n),
 """
     for name, _ in inputs:
         wrapper += f"        .{name} ({name}),\n"
@@ -166,9 +180,9 @@ def main():
         print(f"File {src_file} not found.")
         sys.exit(1)
     module_name = sys.argv[3] if len(sys.argv) >= 4 else src_path.stem
-    inputs, outputs, hasclock, hasreset = parse_ports(src_file, module_name)
+    inputs, outputs, hasclock, hasclk, hasreset, hasrst = parse_ports(src_file, module_name)
     print(f"Found {len(inputs)} input ports, {len(outputs)} output ports")
-    wrapper_code = generate_wrapper(inputs, outputs, hasclock, hasreset, module_name)
+    wrapper_code = generate_wrapper(inputs, outputs, hasclock, hasclk, hasreset, hasrst, module_name)
     if len(sys.argv) >= 3:
         out_dir = Path(sys.argv[2])
         out_dir.mkdir(parents=True, exist_ok=True)

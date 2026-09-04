@@ -122,10 +122,10 @@ def main():
     stats_txt = out_dir / 'stats.txt'
     ys_lines += [
         f'hierarchy -check -top {wrapper_module}',
-        'proc; opt; fsm; opt; memory; opt',
-        'synth -flatten',
+        'proc; opt; clean; fsm; opt; clean; memory; opt; clean',
+        f'synth -top {wrapper_module}',
         f'dfflibmap -liberty {cfg["LIBERTY"]}',
-        f'abc -liberty {cfg["LIBERTY"]}',
+        f'abc -liberty {cfg["LIBERTY"]} -D {clk_period * 0.9}',
         f'write_verilog -noattr {netlist}',
         f'tee -o {stats_json} stat -json',
         f'tee -o {stats_txt} stat'
