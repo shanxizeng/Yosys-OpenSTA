@@ -14,6 +14,7 @@
 python3 run_flow.py              # 按 flow.env 配置跑全流程
 python3 run_flow.py --clean      # 清空输出目录后重跑
 python3 run_flow.py -c 其他.env  # 使用其他配置文件
+python3 run_flow.py -q           # 静默运行，不输出 yosys 综合中输出的信息
 ```
 
 将待分析的 RTL（`.sv`/`.v`）放入源码目录（默认 `verilogs/`），按文件名排序的第一个文件作为 top 模块。
@@ -55,6 +56,7 @@ flow.env ──► run_flow.py
 | `SDC` | constraints.sdc | 时序约束文件 |
 | `SRC_DIR` | verilogs | 源码目录 |
 | `TOP` | 空 | top 文件名；留空取源码目录第一个文件 |
+| `TOP_MODULE` | 空 | top 模块名；留空用 top 文件 stem 推断（文件内含多个 module 或模块名与文件名不一致时需显式指定） |
 | `CLK_PERIOD` | 10.0 | 时钟周期 (ns)，自动替换 SDC 中 create_clock 的 period |
 | `REG_MODE` | 1 | 1 = 寄存器包装；0 = 纯组合包装 |
 | `OUT_DIR` | output | 输出目录 |

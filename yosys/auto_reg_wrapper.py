@@ -3,13 +3,20 @@ import re
 import sys
 from pathlib import Path
 
-def parse_ports(file_path):
+def parse_ports(file_path, module_name):
     with open(file_path, 'r') as f:
         content = f.read()
-    module_match = re.search(r'module\s+(\w+)\s*\((.*?)\);', content, re.DOTALL)
+    # 剥离行注释，避免注释内容干扰端口解析
+    content = re.sub(r'//[^\n]*', '', content)
+    # 按目标模块名定位（文件中可能包含多个 module，目标未必在最前面）
+    module_match = re.search(
+        r'module\s+' + re.escape(module_name) + r'\s*\((.*?)\);', content, re.DOTALL)
     if not module_match:
-        raise ValueError("Cannot find module declaration")
-    ports_text = module_match.group(2)
+        modules = re.findall(r'module\s+(\w+)\s*\(', content)
+        raise ValueError(
+            f"在 {file_path} 中找不到模块 {module_name}，"
+            f"文件中的模块有: {', '.join(modules)}")
+    ports_text = module_match.group(1)
     # 简单提取所有端口（忽略跨行细节，但通常OK）
     # 更好的做法是逐行处理，但为简化，此处用正则匹配所有 input/output
     # 注意：要处理可能的多行端口定义，这里采用非贪婪匹配
@@ -149,8 +156,8 @@ endmodule
     return wrapper
 
 def main():
-    if len(sys.argv) not in (2, 3):
-        print("Usage: python auto_reg_wrapper.py <source.v> [out_dir]")
+    if len(sys.argv) not in (2, 3, 4):
+        print("Usage: python auto_reg_wrapper.py <source.v> [out_dir] [module_name]")
         sys.exit(1)
     print("auto_reg_wrapper.py", sys.argv[1])
     src_file = sys.argv[1]
@@ -158,11 +165,11 @@ def main():
     if not src_path.exists():
         print(f"File {src_file} not found.")
         sys.exit(1)
-    inputs, outputs, hasclock, hasreset = parse_ports(src_file)
-    module_name = src_path.stem
+    module_name = sys.argv[3] if len(sys.argv) >= 4 else src_path.stem
+    inputs, outputs, hasclock, hasreset = parse_ports(src_file, module_name)
     print(f"Found {len(inputs)} input ports, {len(outputs)} output ports")
     wrapper_code = generate_wrapper(inputs, outputs, hasclock, hasreset, module_name)
-    if len(sys.argv) == 3:
+    if len(sys.argv) >= 3:
         out_dir = Path(sys.argv[2])
         out_dir.mkdir(parents=True, exist_ok=True)
     else:

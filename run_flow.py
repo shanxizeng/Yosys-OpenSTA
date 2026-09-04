@@ -52,6 +52,7 @@ exit
 def main():
     parser = argparse.ArgumentParser(description='OpenSTA 全流程自动化')
     parser.add_argument('-c', '--config', default='flow.env', help='配置文件路径（默认 flow.env）')
+    parser.add_argument('-q', '--quiet', action='store_true', help='静默输出')
     parser.add_argument('--clean', action='store_true', help='运行前清空输出目录')
     args = parser.parse_args()
 
@@ -99,14 +100,15 @@ def main():
             sys.exit(f'error: 指定的 top 文件不存在 {top_src}')
     else:
         top_src = src_files[0]
-    top_module = top_src.stem
+    # TOP_MODULE 留空 = 用 top 文件 stem 推断模块名
+    top_module = cfg.get('TOP_MODULE') or top_src.stem
     wrapper_module = f'{top_module}_wrapper'
     print(f'top 模块: {top_module} ({top_src})')
 
     # ---------- 1. 生成 wrapper ----------
     wrapper_script = ROOT / 'yosys' / ('auto_reg_wrapper.py' if reg_mode else 'auto_wrapper.py')
     print('\n== 生成 wrapper ==')
-    run([sys.executable, wrapper_script, top_src, out_dir])
+    run([sys.executable, wrapper_script, top_src, out_dir, top_module])
     wrapper_file = out_dir / f'{top_module}{"_reg" if reg_mode else ""}_wrapper.sv'
     if not wrapper_file.exists():
         sys.exit(f'error: wrapper 未生成 {wrapper_file}')
@@ -131,7 +133,10 @@ def main():
     ys_path = out_dir / 'run.ys'
     ys_path.write_text('\n'.join(ys_lines) + '\n')
     print('\n== yosys 综合 ==')
-    run([yosys_bin, '-Q', '-q', ys_path])
+    if args.quiet:
+        run([yosys_bin, '-Q', '-q', ys_path])
+    else:
+        run([yosys_bin, ys_path])
 
     # ---------- 3. 约束（替换时钟周期） ----------
     sdc_src = ROOT / cfg['SDC']
